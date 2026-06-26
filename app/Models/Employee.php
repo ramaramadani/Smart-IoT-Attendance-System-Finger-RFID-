@@ -9,19 +9,31 @@ class Employee extends Model
 {
     use HasFactory;
 
+    protected $table = 'karyawan';
+    protected $primaryKey = 'id_Karyawan';
+
+    const CREATED_AT = 'cread_at';
+    const UPDATED_AT = null;
+
     protected $fillable = [
-        'name',
-        'rfid_uid',
-        'finger_id',
-        'is_active',
+        'Nip',
+        'Nama',
+        'Jenis_Kelamin',
+        'Jabatan',
+        'id_departemen',
+        'id_fingerprint',
+        'id_RFID',
+        'Tanggal_bergabung',
+        'Status',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'id_departemen', 'id_departemen');
+    }
 
     public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class, 'id_karyawan', 'id_Karyawan');
     }
 }

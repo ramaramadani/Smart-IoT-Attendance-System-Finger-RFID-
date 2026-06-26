@@ -3,38 +3,53 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\Department;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::latest()->paginate(20);
-        return view('employees.index', compact('employees'));
+        $employees = Employee::with('department')->latest('id_Karyawan')->paginate(20);
+        $departments = Department::orderBy('Nama_departemen')->get();
+        return view('employees.index', compact('employees', 'departments'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'rfid_uid' => 'nullable|string|max:255',
-            'finger_id' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'Nip' => 'required|string|unique:karyawan,Nip',
+            'Nama' => 'required|string|max:255',
+            'Jenis_Kelamin' => 'required|in:Laki-laki,Perempuan',
+            'Jabatan' => 'required|string|max:255',
+            'id_departemen' => 'required|exists:departemen,id_departemen',
+            'id_fingerprint' => 'nullable|string|max:255',
+            'id_RFID' => 'nullable|string|max:255',
+            'Tanggal_bergabung' => 'required|date',
+            'Status' => 'required|in:aktif,nonaktif',
         ]);
-        $data['is_active'] = $request->has('is_active');
+
         Employee::create($data);
+
         return back()->with('success', 'Employee created successfully.');
     }
 
     public function update(Request $request, Employee $employee)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'rfid_uid' => 'nullable|string|max:255',
-            'finger_id' => 'nullable|string|max:255',
+            'Nip' => 'required|string|unique:karyawan,Nip,' . $employee->id_Karyawan . ',id_Karyawan',
+            'Nama' => 'required|string|max:255',
+            'Jenis_Kelamin' => 'required|in:Laki-laki,Perempuan',
+            'Jabatan' => 'required|string|max:255',
+            'id_departemen' => 'required|exists:departemen,id_departemen',
+            'id_fingerprint' => 'nullable|string|max:255',
+            'id_RFID' => 'nullable|string|max:255',
+            'Tanggal_bergabung' => 'required|date',
+            'Status' => 'required|in:aktif,nonaktif',
         ]);
-        $data['is_active'] = $request->has('is_active');
+
         $employee->update($data);
+
         return back()->with('success', 'Employee updated successfully.');
     }
 

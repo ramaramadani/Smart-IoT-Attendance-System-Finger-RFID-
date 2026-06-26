@@ -14,10 +14,15 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+        $request->validate([
+            'Username' => ['required', 'string'],
+            'Password' => ['required', 'string'],
         ]);
+
+        $credentials = [
+            'Username' => $request->Username,
+            'password' => $request->Password, // Laravel Auth expects lowercase 'password' key to authenticate via getAuthPassword()
+        ];
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
@@ -26,8 +31,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
-        ])->onlyInput('username');
+            'Username' => 'The provided credentials do not match our records.',
+        ])->onlyInput('Username');
     }
 
     public function logout(Request $request)

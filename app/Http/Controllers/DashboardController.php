@@ -10,15 +10,15 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $today = Carbon::today();
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $startOfYear = Carbon::now()->startOfYear();
+        $today = Carbon::today()->toDateString();
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $startOfMonth = Carbon::now()->startOfMonth()->toDateString();
+        $startOfYear = Carbon::now()->startOfYear()->toDateString();
 
-        $dailyCount = Attendance::whereDate('scanned_at', $today)->count();
-        $weeklyCount = Attendance::where('scanned_at', '>=', $startOfWeek)->count();
-        $monthlyCount = Attendance::where('scanned_at', '>=', $startOfMonth)->count();
-        $yearlyCount = Attendance::where('scanned_at', '>=', $startOfYear)->count();
+        $dailyCount = Attendance::whereDate('Tanggal', $today)->whereNotNull('Jam_masuk')->count();
+        $weeklyCount = Attendance::where('Tanggal', '>=', $startOfWeek)->whereNotNull('Jam_masuk')->count();
+        $monthlyCount = Attendance::where('Tanggal', '>=', $startOfMonth)->whereNotNull('Jam_masuk')->count();
+        $yearlyCount = Attendance::where('Tanggal', '>=', $startOfYear)->whereNotNull('Jam_masuk')->count();
 
         // Chart Filtering Logic
         $filter = $request->input('filter', 'weekly');
@@ -29,9 +29,9 @@ class DashboardController extends Controller
             // Data per hour for today
             for ($i = 6; $i <= 18; $i++) {
                 $chartLabels[] = sprintf('%02d:00', $i);
-                $chartData[] = Attendance::whereDate('scanned_at', $today)
-                                ->whereTime('scanned_at', '>=', sprintf('%02d:00:00', $i))
-                                ->whereTime('scanned_at', '<', sprintf('%02d:59:59', $i))
+                $chartData[] = Attendance::whereDate('Tanggal', $today)
+                                ->whereTime('Jam_masuk', '>=', sprintf('%02d:00:00', $i))
+                                ->whereTime('Jam_masuk', '<', sprintf('%02d:59:59', $i))
                                 ->count();
             }
         } elseif ($filter == 'monthly') {
@@ -39,7 +39,7 @@ class DashboardController extends Controller
             for ($i = 29; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i);
                 $chartLabels[] = $date->format('d M');
-                $chartData[] = Attendance::whereDate('scanned_at', $date)->count();
+                $chartData[] = Attendance::whereDate('Tanggal', $date->toDateString())->whereNotNull('Jam_masuk')->count();
             }
         } elseif ($filter == 'yearly') {
             // Data per month for this year
@@ -50,8 +50,9 @@ class DashboardController extends Controller
                 if ($monthStart->isFuture()) {
                     $chartData[] = 0;
                 } else {
-                    $chartData[] = Attendance::whereMonth('scanned_at', $i)
-                                    ->whereYear('scanned_at', Carbon::now()->year)
+                    $chartData[] = Attendance::whereMonth('Tanggal', $i)
+                                    ->whereYear('Tanggal', Carbon::now()->year)
+                                    ->whereNotNull('Jam_masuk')
                                     ->count();
                 }
             }
@@ -60,7 +61,7 @@ class DashboardController extends Controller
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i);
                 $chartLabels[] = $date->format('d M');
-                $chartData[] = Attendance::whereDate('scanned_at', $date)->count();
+                $chartData[] = Attendance::whereDate('Tanggal', $date->toDateString())->whereNotNull('Jam_masuk')->count();
             }
         }
 

@@ -39,7 +39,7 @@
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            /* Optimasi: Ganti fixed multi-radial gradient yang sangat berat dengan linear gradient biasa */
+            /* Optimization: Replace heavy fixed multi-radial gradient with a simple linear gradient */
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
         }
 
@@ -55,7 +55,7 @@
         .sidebar {
             width: var(--sidebar-width);
             background: var(--sidebar-bg);
-            /* Optimasi: Blur dikurangi agar tidak membebani GPU */
+            /* Optimization: Reduced blur to avoid GPU overhead */
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border-right: 1px solid var(--glass-border);
@@ -88,7 +88,7 @@
             text-decoration: none;
             border-radius: 0.75rem;
             margin-bottom: 0.5rem;
-            transition: background-color 0.2s, color 0.2s; /* Optimasi: Spesifik properti, hilangkan 'all' */
+            transition: background-color 0.2s, color 0.2s; /* Optimization: Target specific properties, avoid 'all' */
             font-weight: 500;
         }
 
@@ -98,7 +98,7 @@
         }
 
         .nav-item.active {
-            background: rgba(99, 102, 241, 0.15); /* Optimasi: pakai rgba biasa, tanpa linear-gradient */
+            background: rgba(99, 102, 241, 0.15); /* Optimization: Use plain rgba, no linear-gradient */
             border-left: 3px solid var(--primary);
         }
 
@@ -127,13 +127,13 @@
 
         .glass-panel {
             background: var(--glass-bg);
-            /* Optimasi Utama: Hapus backdrop-filter ganda di ratusan elemen panel. Ini penyebab 90% patah-patah */
+            /* Main Optimization: Remove duplicate backdrop-filter on hundreds of panel elements. This causes 90% of jank */
             border: 1px solid var(--glass-border);
             border-radius: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); /* Optimasi: shadow dikurangi intensitasnya */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); /* Optimization: Reduced shadow intensity */
             padding: 2rem;
             margin-bottom: 2rem;
-            /* Optimasi: Animasi diminimalkan */
+            /* Optimization: Animations minimized */
         }
 
         .topbar {
@@ -225,20 +225,22 @@
             </div>
             
             <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
-            <a href="{{ route('logs') }}" class="nav-item {{ request()->routeIs('logs') ? 'active' : '' }}">Log</a>
+            <a href="{{ route('logs') }}" class="nav-item {{ request()->routeIs('logs') ? 'active' : '' }}">Attendance Logs</a>
+            <a href="{{ route('sp_report') }}" class="nav-item {{ request()->routeIs('sp_report') ? 'active' : '' }}">SP 1 Report</a>
             <a href="{{ route('monitoring') }}" class="nav-item {{ request()->routeIs('monitoring') ? 'active' : '' }}">Monitoring</a>
             <a href="{{ route('emergency') }}" class="nav-item emergency {{ request()->routeIs('emergency') ? 'active' : '' }}">Emergency</a>
             
-            @if(auth()->user()->role === 'admin')
+            @if(auth()->user()->Role === 'admin')
                 <div style="margin-top: 1.5rem; margin-bottom: 0.5rem; padding-left: 1rem; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Admin</div>
-                <a href="{{ route('employees.index') }}" class="nav-item {{ request()->routeIs('employees.*') ? 'active' : '' }}">Data Karyawan</a>
-                <a href="{{ route('users.index') }}" class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">Manajemen Akun</a>
+                <a href="{{ route('departments.index') }}" class="nav-item {{ request()->routeIs('departments.*') ? 'active' : '' }}">Department Data</a>
+                <a href="{{ route('employees.index') }}" class="nav-item {{ request()->routeIs('employees.*') ? 'active' : '' }}">Employee Data</a>
+                <a href="{{ route('users.index') }}" class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">Account Management</a>
             @endif
 
             <div class="sidebar-footer">
                 <div style="padding: 0 1rem; margin-bottom: 1rem;">
-                    <div style="font-size: 0.875rem; color: var(--text-main);">{{ auth()->user()->name }}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ ucfirst(auth()->user()->role) }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-main);">{{ auth()->user()->Nama }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ ucfirst(auth()->user()->Role) }}</div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf

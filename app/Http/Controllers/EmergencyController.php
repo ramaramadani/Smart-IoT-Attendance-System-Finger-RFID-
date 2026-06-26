@@ -2,31 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Employee;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class EmergencyController extends Controller
 {
     public function index()
     {
-        // Identical to monitoring but styled appropriately
-        $today = \Carbon\Carbon::today();
+        $today = Carbon::today()->toDateString();
 
-        $subQuery = DB::table('attendances')
-            ->select('employee_id', DB::raw('MAX(scanned_at) as last_scan'))
-            ->whereDate('scanned_at', $today)
-            ->groupBy('employee_id');
-
-        $insideEmployees = Employee::joinSub($subQuery, 'latest_scans', function ($join) {
-                $join->on('employees.id', '=', 'latest_scans.employee_id');
+        // Evacuation Status: Employees with Jam_masuk but no Jam_keluar today
+        $insideEmployees = Employee::whereHas('attendances', function ($join) use ($today) {
+                $join->whereDate('Tanggal', $today)
+                     ->whereNotNull('Jam_masuk')
+                     ->whereNull('Jam_keluar');
             })
-            ->join('attendances', function ($join) {
-                $join->on('employees.id', '=', 'attendances.employee_id')
-                     ->on('latest_scans.last_scan', '=', 'attendances.scanned_at');
-            })
-            ->whereIn('attendances.type', ['tap_in_rfid', 'absen_finger'])
-            ->select('employees.*', 'attendances.scanned_at as last_seen', 'attendances.type as scan_type')
+            ->with(['attendances' => function ($q) use ($today) {
+                $q->whereDate('Tanggal', $today);
+            }])
             ->get();
 
         return view('emergency.index', compact('insideEmployees'));

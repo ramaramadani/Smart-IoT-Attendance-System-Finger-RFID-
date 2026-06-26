@@ -5,46 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class MonitoringController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Live Monitoring Logic
-        $today = \Carbon\Carbon::today();
+        $today = Carbon::today()->toDateString();
 
-        $subQuery = DB::table('attendances')
-            ->select('employee_id', DB::raw('MAX(scanned_at) as last_scan'))
-            ->whereDate('scanned_at', $today)
-            ->groupBy('employee_id');
-
-        $insideEmployees = Employee::joinSub($subQuery, 'latest_scans', function ($join) {
-                $join->on('employees.id', '=', 'latest_scans.employee_id');
+        // 1. Live Monitoring Logic (Employees with Jam_masuk but no Jam_keluar today)
+        $insideEmployees = Employee::whereHas('attendances', function ($join) use ($today) {
+                $join->whereDate('Tanggal', $today)
+                     ->whereNotNull('Jam_masuk')
+                     ->whereNull('Jam_keluar');
             })
-            ->join('attendances', function ($join) {
-                $join->on('employees.id', '=', 'attendances.employee_id')
-                     ->on('latest_scans.last_scan', '=', 'attendances.scanned_at');
-            })
-            ->whereIn('attendances.type', ['tap_in_rfid', 'absen_finger'])
-            ->select('employees.*', 'attendances.scanned_at as last_seen', 'attendances.type as scan_type')
+            ->with(['attendances' => function ($q) use ($today) {
+                $q->whereDate('Tanggal', $today);
+            }])
             ->get();
 
-
-        // 2. RFID Logs Logic
-        $rfidQuery = Attendance::with('employee')->whereIn('type', ['tap_in_rfid', 'tap_out_rfid']);
+        // 2. RFID logs (we display all daily attendance entries)
+        $rfidQuery = Attendance::with('employee.department')->where(function ($q) {
+            $q->whereNotNull('Jam_masuk')->orWhereNotNull('Jam_keluar');
+        });
 
         if ($request->filled('name')) {
             $rfidQuery->whereHas('employee', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->name . '%');
+                $q->where('Nama', 'like', '%' . $request->name . '%');
             });
         }
 
         if ($request->filled('date')) {
-            $rfidQuery->whereDate('scanned_at', $request->date);
+            $rfidQuery->whereDate('Tanggal', $request->date);
         }
 
-        $rfidLogs = $rfidQuery->latest('scanned_at')->paginate(20)->withQueryString();
+        $rfidLogs = $rfidQuery->orderBy('Tanggal', 'desc')->orderBy('cread_at', 'desc')->paginate(20)->withQueryString();
 
         return view('monitoring.index', compact('insideEmployees', 'rfidLogs'));
     }

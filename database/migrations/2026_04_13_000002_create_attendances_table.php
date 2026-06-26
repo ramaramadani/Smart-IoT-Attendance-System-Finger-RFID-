@@ -8,17 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('attendances', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
-            $table->enum('type', ['absen_finger', 'tap_in_rfid', 'tap_out_rfid']);
-            $table->timestamp('scanned_at');
-            $table->timestamps();
+        Schema::create('absensi', function (Blueprint $table) {
+            $table->id('id_absensi');
+            $table->foreignId('id_karyawan')->constrained('karyawan', 'id_Karyawan')->cascadeOnDelete();
+            $table->date('Tanggal');
+            $table->time('Jam_masuk')->nullable();
+            $table->time('Jam_keluar')->nullable();
+            $table->integer('Durasi')->default(0);
+            $table->string('Status')->default('hadir');
+            $table->text('Keterangan')->nullable();
+            $table->timestamp('cread_at')->useCurrent();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('attendances');
+        Schema::dropIfExists('absensi');
     }
 };

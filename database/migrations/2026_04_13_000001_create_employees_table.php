@@ -8,18 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('employees', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('rfid_uid')->nullable();
-            $table->string('finger_id')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+        Schema::create('karyawan', function (Blueprint $table) {
+            $table->id('id_Karyawan');
+            $table->string('Nip')->unique();
+            $table->string('Nama');
+            $table->string('Jenis_Kelamin');
+            $table->string('Jabatan');
+            $table->foreignId('id_departemen')->constrained('departemen', 'id_departemen')->cascadeOnDelete();
+            $table->string('id_fingerprint')->nullable();
+            $table->string('id_RFID')->nullable();
+            $table->date('Tanggal_bergabung');
+            $table->string('Status')->default('aktif');
+            $table->timestamp('cread_at')->useCurrent();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('employees');
+        Schema::dropIfExists('karyawan');
     }
 };
